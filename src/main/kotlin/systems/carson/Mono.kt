@@ -109,7 +109,7 @@ interface Mono<R> {
 
 
     /**
-     * Gets the EndResultImpl of the [Mono].
+     * Gets the EndResult of the [Mono].
      * @suppress THIS SHOULD NOT BE USED
      */
      fun get(): EndResult<R>

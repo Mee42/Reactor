@@ -25,3 +25,5 @@ internal class EndResultImpl<R>(val value :R? = null,
         return Optional.ofNullable(value)
     }
 }
+
+

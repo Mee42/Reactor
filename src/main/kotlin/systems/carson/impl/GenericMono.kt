@@ -16,8 +16,8 @@ internal abstract class GenericMono<R> : Mono<R>{
         return CallableMono(ComplexProducer {
             val value = get()
             if (value.isClosed())
-                return@ComplexProducer EndResultImpl<E>(isClosed = true)
-            return@ComplexProducer EndResultImpl(processor(value.value()))
+                return@ComplexProducer EndResult.closed<E>()
+            return@ComplexProducer EndResult.forValue(processor(value.value()))
         })
     }
 
@@ -30,13 +30,13 @@ internal abstract class GenericMono<R> : Mono<R>{
         return CallableMono(ComplexProducer {
             val get = get()
             if (get.isClosed())
-                return@ComplexProducer EndResultImpl<E>(isClosed = true)
+                return@ComplexProducer EndResult.closed<E>()
             val value = get.value()
             val newValue: Mono<E> = processor(value)
             val newGet = newValue.get()
             if (newGet.isClosed())
-                return@ComplexProducer EndResultImpl<E>(isClosed = true)
-            return@ComplexProducer EndResultImpl(value = newGet.value())
+                return@ComplexProducer EndResult.closed<E>()
+            return@ComplexProducer EndResult.forValue(newGet.value())
         })
     }
 
@@ -44,9 +44,9 @@ internal abstract class GenericMono<R> : Mono<R>{
         return CallableMono(ComplexProducer {
             val get = get()
             if (get.isClosed())
-                return@ComplexProducer EndResultImpl<R>(isClosed = true)
+                return@ComplexProducer EndResult.closed<R>()
             processor(get.value())
-            return@ComplexProducer EndResultImpl(value = get.value())
+            return@ComplexProducer EndResult.forValue(get.value())
         })
     }
 
@@ -55,12 +55,12 @@ internal abstract class GenericMono<R> : Mono<R>{
             try {
                 val get = get()
                 if (get.isClosed())
-                    return@r EndResultImpl<R>(isClosed = true)
-                return@r EndResultImpl(value = get.value())
+                    return@r EndResult.closed<R>()
+                return@r EndResult.forValue(get.value())
             } catch (e: Throwable) {
                 if (error.isInstance(e)) {
                     @Suppress("UNCHECKED_CAST")
-                    return@r EndResultImpl(value = errorHandler(e as E))
+                    return@r EndResult.forValue(errorHandler(e as E))
                 } else {
                     throw e
                 }
@@ -80,11 +80,11 @@ internal abstract class GenericMono<R> : Mono<R>{
         return CallableMono(ComplexProducer r@{
             val get = get()
 //            if(get.isClosed)
-//                return@r EndResultImpl<R>(isClosed = true)
+//                return@r EndResult.closed<R>()
 //            if(predicate(get.value!!))
             return@r when {
-                get.isClosed() || !predicate(get.value()) -> EndResultImpl(isClosed = true)
-                else -> EndResultImpl(value = get.value())
+                get.isClosed() || !predicate(get.value()) -> EndResult.closed()
+                else -> EndResult.forValue(get.value())
             }
 
         })
@@ -94,8 +94,8 @@ internal abstract class GenericMono<R> : Mono<R>{
         return CallableMono(ComplexProducer r@{
             val get = get()
             if (get.isClosed())
-                return@r EndResultImpl(value = defaultValue())
-            return@r EndResultImpl(value = get.value())
+                return@r EndResult.forValue(defaultValue())
+            return@r EndResult.forValue(get.value())
         })
     }
 

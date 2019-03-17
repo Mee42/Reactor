@@ -24,4 +24,6 @@ interface EndResult<R> {
      * @returns A safe version of the value
      */
     fun valueOptional() : Optional<R>
+
+    companion object
 }

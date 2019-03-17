@@ -337,5 +337,20 @@ class MonoTests{
         Thread.sleep(100)
         assert(called)
     }
+    @Test
+    fun monoMono(){
+        val mono = Mono.fromCallable { Mono.just("Hello") }
+            .toMono()
+            .toMono()
+            .zipToMono(Mono.just(", World!")) { a,b -> a.map { v1 -> v1.map { v2 -> v2.map { v3 -> v3.map { v4 -> v4 + b } } } } }
+            .flatMap { it }
+            .flatMap { it }
+            .flatMap { it }
+            .flatMap { it }
+
+
+
+        assertEquals("Hello, World!",mono.block())
+    }
 }
 

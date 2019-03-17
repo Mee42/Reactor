@@ -36,11 +36,11 @@ fun <A,B,C> Mono.Companion.zip(a :Mono<A>,b :Mono<B>,c :(A,B) -> C):Mono<C>{
     return CallableMono(ComplexProducer {
         val aResult = a.get()
         if (aResult.isClosed())
-            return@ComplexProducer EndResultImpl<C>(isClosed = true)
+            return@ComplexProducer EndResult.closed<C>()
         val bResult = b.get()
         if (bResult.isClosed())
-            return@ComplexProducer EndResultImpl<C>(isClosed = true)
+            return@ComplexProducer EndResult.closed<C>()
         val cReturn: C = c(aResult.value(), bResult.value())
-        return@ComplexProducer EndResultImpl(value = cReturn)
+        return@ComplexProducer EndResult.forValue(cReturn)
     })
 }

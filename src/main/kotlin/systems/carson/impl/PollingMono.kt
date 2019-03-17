@@ -9,10 +9,10 @@ internal class PollingMono<R>(private val callable :() -> Optional<R>, private v
     override fun get(): EndResult<R> {
         while(true){
             if(closed)
-                return EndResultImpl(isClosed = true)
+                return EndResult.closed()
             val value = callable()
             if(value.isPresent)
-                return EndResultImpl(value = value.get())
+                return EndResult.forValue(value.get())
             Thread.sleep(millis)
         }
     }
