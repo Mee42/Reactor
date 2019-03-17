@@ -7,11 +7,14 @@ internal class ValueMono<R>(private val value :R) :GenericMono<R>(),ClosableMono
     override fun get(): EndResult<R> {
         if(canceled)
             return EndResult.closed()
+        gotten = true
         return EndResult.forValue(value)
     }
 
     private var canceled = false
-    override fun cancel() {
+    private var gotten = false
+    override fun close() :Boolean{
         canceled = true
+        return !gotten
     }
 }

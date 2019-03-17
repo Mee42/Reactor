@@ -1,5 +1,14 @@
 package systems.carson
 
+/**
+ * A [Mono] that can be closed
+ */
 interface ClosableMono<R> :Mono<R> {
-    fun cancel()
+    /**
+     * This will close any existing block or subscribe unless it has already been
+     * requested.
+     * @returns True if the [Mono] is cancelled successfully
+     */
+    fun close():Boolean
+    companion object
 }

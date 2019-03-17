@@ -4,12 +4,12 @@ import systems.carson.impl.*
 import java.util.*
 
 /**
- * Returns a [Mono] for the value.
+ * Returns a [ClosableMono] for the value.
  * @param value The value to use
- * @returns A [Mono] containing the value
+ * @returns A [ClosableMono] containing the value
  */
-fun <R> Mono.Companion.just(value :R):Mono<R>{
-    return CallableMono(SimpleProducer { value })
+fun <R> Mono.Companion.just(value :R):ClosableMono<R>{
+    return ValueMono(value = value)
 }
 
 
@@ -24,7 +24,7 @@ fun <R> Mono.Companion.fromCallable(processor :() -> R):Mono<R>{
 /**
  * Returns a mono that will poll the processor until it returns
  */
-fun <R> Mono.Companion.fromPollable(millis :Long = 10,processor: () -> Optional<R>):ClosableMono<R>{
+fun <R> Mono.Companion.fromPollable(millis :Long = 10,processor: () -> Optional<R>) :ClosableMono<R>{
     return PollingMono(processor,millis)
 }
 

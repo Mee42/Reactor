@@ -119,7 +119,7 @@ internal abstract class GenericMono<R> : Mono<R>{
 
     override fun subscribe() {
         ThreadManager.threadPool.execute { this.get() }
-
     }
 
+//    abstract override fun get(): EndResult<R>
 }

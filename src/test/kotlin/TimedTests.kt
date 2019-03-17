@@ -28,6 +28,14 @@ class TimedTests{
         val op = x.block()
         Assert.assertEquals(10, op)
     }
+    @Test
+    fun test4(){
+        val x  = Mono.just(5)
+        x.close()
+        val y  =  x.map { Thread.sleep(1000);it + 5 }
+        val op = y.blockWithTimeout(Duration.ofMillis(10))
+        Assert.assertEquals(Optional.empty<Int>(), op)
+    }
 
     @Test
     fun delay1(){
@@ -75,16 +83,12 @@ class TimedTests{
             .flatMap { it.zipToMono(getMonoB()){a,b -> a + b} }
             .flatMap { it.zipToMono(getMonoC()){a,b -> a + b} }
             .flatMap { it.zipToMono(getMonoD()){a,b -> a + b} }
-//            .doOnGet { println(it) }
-            .doOnGet { println("got");mono = it }
+            .doOnGet { mono = it }
             .subscribe()
         Thread.sleep(4_000)
         Assert.assertEquals("", mono)
         Thread.sleep(2_000)
         Assert.assertEquals("abcd", mono)
-
-
-
     }
 
 }

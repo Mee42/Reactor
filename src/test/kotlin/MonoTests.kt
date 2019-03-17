@@ -5,8 +5,6 @@ import systems.carson.*
 import java.lang.NullPointerException
 import java.time.Duration
 import java.util.*
-import java.util.concurrent.Future
-import java.util.concurrent.FutureTask
 import kotlin.reflect.KClass
 
 class MonoTests{
@@ -308,7 +306,7 @@ class MonoTests{
         val mono = Mono.fromPollable(10) { Optional.ofNullable(if(++polls == 10) "hello" else null) }
         mono.map { "$it, world!" }.doOnGet { called = true }.subscribe()
         Thread.sleep(50)
-        mono.cancel()
+        mono.close()
         Thread.sleep(60)
         assert(!called)
     }
@@ -321,7 +319,7 @@ class MonoTests{
         val mono = Mono.fromPollable(10) { Optional.ofNullable(if(++polls == 10) "hello" else null) }
         mono.delay(Duration.ofMillis(75)).doOnGet { called = true }.subscribe()
         Thread.sleep(50)
-        mono.cancel()
+        mono.close()
         Thread.sleep(100)
         assert(!called)
     }
@@ -333,7 +331,7 @@ class MonoTests{
         val mono = Mono.fromPollable(10) { Optional.ofNullable(if(++polls == 10) "hello" else null) }
         mono.delay(Duration.ofMillis(75)).doOnGet { called = true }.subscribe()
         Thread.sleep(100)
-        mono.cancel()
+        mono.close()
         Thread.sleep(100)
         assert(called)
     }
@@ -352,5 +350,37 @@ class MonoTests{
 
         assertEquals("Hello, World!",mono.block())
     }
+
+    @Test
+    fun flatMapReturnsClosed(){
+        val closedMono = Mono.just("hello")
+        closedMono.close()
+        val mono = Mono.just("world").flatMap { closedMono }
+        val value = mono.blockOptional()
+        assertEquals(Optional.empty<String>(),value)
+    }
+
+
+    @Test
+    fun flatMapReturnsClosed2(){
+        val closedMono = Mono.just("hello")
+        closedMono.close()
+        val mono = closedMono.flatMap { Mono.just("hello") }
+        val value = mono.blockOptional()
+        assertEquals(Optional.empty<String>(),value)
+    }
+
+    @Test
+    fun doOnErrorOnClosedMono(){
+        val closedMono = Mono.just("hello")
+        closedMono.close()
+        var ranError = false
+        val mono = closedMono.map { Integer.parseInt("hello") }
+                                        .doOnError(NumberFormatException::class) { ranError = true;1 }
+                                        .blockOptional()
+        assertEquals(Optional.empty<Int>(),mono)
+        assert(!ranError)
+    }
+
 }
 
