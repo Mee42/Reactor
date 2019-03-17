@@ -1,16 +1,15 @@
 package systems.carson
 
-import systems.carson.impl.CallableMono
-import systems.carson.impl.ComplexProducer
-import systems.carson.impl.EndResultImpl
-import systems.carson.impl.SimpleProducer
+import systems.carson.impl.*
+import java.util.*
 
 /**
  * Returns a [Mono] for the value.
- *
+ * @param value The value to use
+ * @returns A [Mono] containing the value
  */
-fun <R> Mono.Companion.just(e :R):Mono<R>{
-    return CallableMono(SimpleProducer { e })
+fun <R> Mono.Companion.just(value :R):Mono<R>{
+    return CallableMono(SimpleProducer { value })
 }
 
 
@@ -19,6 +18,14 @@ fun <R> Mono.Companion.just(e :R):Mono<R>{
  */
 fun <R> Mono.Companion.fromCallable(processor :() -> R):Mono<R>{
     return CallableMono(SimpleProducer(processor))
+}
+
+
+/**
+ * Returns a mono that will poll the processor until it returns
+ */
+fun <R> Mono.Companion.fromPollable(millis :Long = 10,processor: () -> Optional<R>):ClosableMono<R>{
+    return PollingMono(processor,millis)
 }
 
 

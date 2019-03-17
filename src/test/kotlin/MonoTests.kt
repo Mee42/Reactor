@@ -276,5 +276,66 @@ class MonoTests{
         assertEquals(Optional.of(true),orr)
     }
 
+
+    @Test
+    fun poll1(){
+        var i = false
+        var ii = false
+        val mono = Mono.fromPollable(1) { if(i) Optional.of("hello") else Optional.empty() }.doOnGet { ii = true }
+        assert(!ii)
+        mono.subscribe()
+        Thread.sleep(3)
+        assert(!ii)
+        i = true
+        Thread.sleep(3)
+        assert(ii)
+    }
+    @Test
+    fun poll2(){
+        var polls = 0
+        var called = false
+        val mono = Mono.fromPollable(10) { Optional.ofNullable(if(++polls == 10) "hello" else null) }
+        mono.map { "$it, world!" }.doOnGet { called = true }.subscribe()
+        Thread.sleep(110)
+        assert(called)
+        assertEquals(10,polls)
+    }
+
+    @Test
+    fun pollCancelsCorrectly1(){
+        var polls = 0
+        var called = false
+        val mono = Mono.fromPollable(10) { Optional.ofNullable(if(++polls == 10) "hello" else null) }
+        mono.map { "$it, world!" }.doOnGet { called = true }.subscribe()
+        Thread.sleep(50)
+        mono.cancel()
+        Thread.sleep(60)
+        assert(!called)
+    }
+
+
+    @Test
+    fun pollCancelsCorrectly2(){
+        var polls = 0
+        var called = false
+        val mono = Mono.fromPollable(10) { Optional.ofNullable(if(++polls == 10) "hello" else null) }
+        mono.delay(Duration.ofMillis(75)).doOnGet { called = true }.subscribe()
+        Thread.sleep(50)
+        mono.cancel()
+        Thread.sleep(100)
+        assert(!called)
+    }
+
+    @Test
+    fun pollCancelsCorrectly3(){
+        var polls = 0
+        var called = false
+        val mono = Mono.fromPollable(10) { Optional.ofNullable(if(++polls == 10) "hello" else null) }
+        mono.delay(Duration.ofMillis(75)).doOnGet { called = true }.subscribe()
+        Thread.sleep(100)
+        mono.cancel()
+        Thread.sleep(100)
+        assert(called)
+    }
 }
 
