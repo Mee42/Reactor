@@ -1,4 +1,5 @@
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
 import systems.carson.*
 import java.lang.NullPointerException
@@ -53,9 +54,10 @@ class Tests{
         val b = Mono.just("b")
         val c = Mono.just("c")
         val d = Mono.just('d')
-        val mono = a.flatMap { Mono.zip(it,b){ a,b -> a + b} }
-            .flatMap { Mono.zip(it,c) {a,b -> a + b} }
-            .flatMap { Mono.zip(it,d) {a,b -> a + b} }
+        val mono = a.flatMap { it.zipToMono(b) { a,b -> a + b} }
+            .flatMap { it.zipToMono(c) {a,b -> a + b} }
+            .flatMap { it.zipToMono(d) {a,b -> a + b} }
+
         assertEquals("abcd",mono.block())
     }
 
@@ -199,7 +201,7 @@ class Tests{
 
     @Test
     fun toMono1(){
-        assertEquals(Mono.just(5),(5).toMono())
+        assertEquals(Mono.just(5).block(),(5).toMono().block())
     }
     @Test
     fun toMono2(){
@@ -215,6 +217,64 @@ class Tests{
     }
 
 
+    @Test
+    fun filter1(){
+        var i = false
+        val x = Mono.just(false)
+            .filter { it }
+            .doOnGet { i = true }
+            .ifClosed { true }
+            .block()
+        assert(!i)
+        assert(x)
+    }
+
+    @Test
+    fun filter2(){
+        val hello: Optional<String> = Mono.just("hello").filter { it == "hello" }.blockOptional()
+        val world: Optional<String> = Mono.just("world").filter { it == "hello" }.blockOptional()
+        assertEquals(Optional.of("hello"),hello)
+        assertEquals(Optional.empty<String>(),world)
+    }
+
+    @Test
+    fun ifClosed(){
+        var i0 = false
+        var i1 = false
+        val hello: Optional<String> = Mono.just("hello").filter { it == "hello" }.doOnGet { i0 = true }.blockOptional()
+        val world: Optional<String> = Mono.just("world").filter { it == "hello" }.doOnGet { i1 = true }.blockOptional()
+        assert(i0)
+        assert(!i1)
+        assertEquals(Optional.of("hello"),hello)
+        assertEquals(Optional.empty<String>(),world)
+    }
+
+    @Test
+    fun failedBlock(){
+        try{
+            Mono.just("hello").filter { it == "world" }.block()
+            fail("Block when closed exception was thrown")
+        }catch(e : BlockWhenClosedException){}
+    }
+    @Test
+    fun closedGetOpWithTimeout(){
+        val mono = Mono.just("hello").filter { it == "world" }.blockWithTimeout(Duration.ofSeconds(1))
+        assertEquals(Optional.empty<String>(),mono)
+    }
+
+    @Test
+    fun closedZips(){
+        val closed = Mono.just(false).filter { it }
+        val open = Mono.just(true).filter { it }
+        val and = Mono.zip(closed,open) { a,b -> a && b }.blockOptional()
+        val or = Mono.zip(open,closed) { a,b -> a || b }.blockOptional()
+        val orr = Mono.zip(open,open) { a,b -> a || b }.blockOptional()
+        assertEquals(Optional.empty<Boolean>(),and)
+        assertEquals(Optional.empty<Boolean>(),or)
+        assertEquals(Optional.of(true),orr)
+
+
+    }
 }
 
 class TimedTests{
@@ -222,14 +282,14 @@ class TimedTests{
     @Test
     fun test1(){
         val x = Mono.just(5).map { Thread.sleep(1000);it + 5 }
-        val op = x.blockOptional(Duration.ofMillis(500))
+        val op = x.blockWithTimeout(Duration.ofMillis(500))
         assertEquals(Optional.empty<Int>(),op)
     }
 
     @Test
     fun test2(){
         val x = Mono.just(5).map { Thread.sleep(1000);it + 5 }
-        val op = x.blockOptional(Duration.ofSeconds(2))
+        val op = x.blockWithTimeout(Duration.ofSeconds(2))
         assertEquals(Optional.of(10),op)
     }
     @Test
@@ -241,13 +301,13 @@ class TimedTests{
 
     @Test
     fun delay1(){
-        val mono: Optional<Int> = Mono.just(5).delay(Duration.ofSeconds(5)).blockOptional(Duration.ofSeconds(10))
+        val mono: Optional<Int> = Mono.just(5).delay(Duration.ofSeconds(5)).blockWithTimeout(Duration.ofSeconds(10))
         assert(mono.isPresent)
     }
 
     @Test
     fun delay2(){
-        val mono: Optional<Int> = Mono.just(5).delay(Duration.ofSeconds(5)).blockOptional(Duration.ofSeconds(1))
+        val mono: Optional<Int> = Mono.just(5).delay(Duration.ofSeconds(5)).blockWithTimeout(Duration.ofSeconds(1))
         assert(!mono.isPresent)
     }
 
@@ -258,6 +318,15 @@ class TimedTests{
         mono.doOnGet { bool = true }.subscribe()
         Thread.sleep(100)
         assert(bool)
+    }
+
+    @Test
+    fun subscribe2(){
+        var i = false
+        val mono = Mono.just(5).map { it + 5 }
+        mono.filter { it == -1 }.doOnGet { i = true }.subscribe()
+        Thread.sleep(100)
+        assert(!i)
     }
 
 

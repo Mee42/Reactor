@@ -1,7 +1,12 @@
 package systems.carson.impl
 
-internal class CallableMono<R>(private val callable :() -> R):GenericMono<R>(){
-    override fun block(): R {
-        return callable()
+import systems.carson.EndResult
+
+
+internal class CallableMono<R>(private val producer : Producer<R>) : GenericMono<R>() {
+
+    override fun get() : EndResult<R> {
+        return producer.get()
     }
+
 }
