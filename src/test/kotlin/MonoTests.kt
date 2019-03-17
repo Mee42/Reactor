@@ -5,9 +5,11 @@ import systems.carson.*
 import java.lang.NullPointerException
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.Future
+import java.util.concurrent.FutureTask
 import kotlin.reflect.KClass
 
-class Tests{
+class MonoTests{
 
     @Test
     fun just(){
@@ -272,63 +274,7 @@ class Tests{
         assertEquals(Optional.empty<Boolean>(),and)
         assertEquals(Optional.empty<Boolean>(),or)
         assertEquals(Optional.of(true),orr)
-
-
     }
+
 }
 
-class TimedTests{
-
-    @Test
-    fun test1(){
-        val x = Mono.just(5).map { Thread.sleep(1000);it + 5 }
-        val op = x.blockWithTimeout(Duration.ofMillis(500))
-        assertEquals(Optional.empty<Int>(),op)
-    }
-
-    @Test
-    fun test2(){
-        val x = Mono.just(5).map { Thread.sleep(1000);it + 5 }
-        val op = x.blockWithTimeout(Duration.ofSeconds(2))
-        assertEquals(Optional.of(10),op)
-    }
-    @Test
-    fun test3(){
-        val x = Mono.just(5).map { Thread.sleep(1000);it + 5 }
-        val op = x.block()
-        assertEquals(10,op)
-    }
-
-    @Test
-    fun delay1(){
-        val mono: Optional<Int> = Mono.just(5).delay(Duration.ofSeconds(5)).blockWithTimeout(Duration.ofSeconds(10))
-        assert(mono.isPresent)
-    }
-
-    @Test
-    fun delay2(){
-        val mono: Optional<Int> = Mono.just(5).delay(Duration.ofSeconds(5)).blockWithTimeout(Duration.ofSeconds(1))
-        assert(!mono.isPresent)
-    }
-
-    @Test
-    fun subscribe1(){
-        val mono = Mono.just(5).map { it + 5 }
-        var bool = false
-        mono.doOnGet { bool = true }.subscribe()
-        Thread.sleep(100)
-        assert(bool)
-    }
-
-    @Test
-    fun subscribe2(){
-        var i = false
-        val mono = Mono.just(5).map { it + 5 }
-        mono.filter { it == -1 }.doOnGet { i = true }.subscribe()
-        Thread.sleep(100)
-        assert(!i)
-    }
-
-
-
-}
