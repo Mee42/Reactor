@@ -2,6 +2,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Test
 import systems.carson.*
+import systems.carson.funs.*
+import systems.carson.mono.Mono
 import java.lang.NullPointerException
 import java.time.Duration
 import java.util.*
@@ -11,18 +13,18 @@ class MonoTests{
 
     @Test
     fun just(){
-        assertEquals(1,Mono.just(1).block())
+        assertEquals(1, Mono.just(1).block())
     }
 
     @Test
     fun map(){
-        assertEquals(2,Mono.just(1).map { it + 1 }.block())
+        assertEquals(2, Mono.just(1).map { it + 1 }.block())
     }
 
 
     @Test
     fun fromCallable(){
-        assertEquals("hello_world",Mono.fromCallable { "hello" }.map { it + "_" }.map { it + "world" }.block())
+        assertEquals("hello_world", Mono.fromCallable { "hello" }.map { it + "_" }.map { it + "world" }.block())
     }
 
     @Test
@@ -36,13 +38,13 @@ class MonoTests{
 
     @Test
     fun flatMap(){
-        assertEquals("hello",Mono.fromCallable { "hel" }.flatMap { w -> Mono.fromCallable { w + "lo" } }.block())
+        assertEquals("hello", Mono.fromCallable { "hel" }.flatMap { w -> Mono.fromCallable { w + "lo" } }.block())
     }
 
     @Test
     fun flatMapRunningAtTheRightTime(){
         var x = false
-        val mono :Mono<String> = Mono.fromCallable { x = true;"hel" }.flatMap { w -> Mono.fromCallable { x = true;w + "lo" } }
+        val mono : Mono<String> = Mono.fromCallable { x = true;"hel" }.flatMap { w -> Mono.fromCallable { x = true;w + "lo" } }
         assert(!x)
         assertEquals("hello",mono.block())
         assert(x)
@@ -80,9 +82,9 @@ class MonoTests{
     @Test
     fun chainedFlatMap(){
         class D(val e :String)
-        class C(val d :Mono<D>)
-        class B(val c :Mono<C>)
-        class A(val b :Mono<B>)
+        class C(val d : Mono<D>)
+        class B(val c : Mono<C>)
+        class A(val b : Mono<B>)
         val d = D("hello world")
         val c = C(Mono.fromCallable { d })
         val b = B(Mono.fromCallable { c })
@@ -266,9 +268,9 @@ class MonoTests{
     fun closedZips(){
         val closed = Mono.just(false).filter { it }
         val open = Mono.just(true).filter { it }
-        val and = Mono.zip(closed,open) { a,b -> a && b }.blockOptional()
-        val or = Mono.zip(open,closed) { a,b -> a || b }.blockOptional()
-        val orr = Mono.zip(open,open) { a,b -> a || b }.blockOptional()
+        val and = Mono.zip(closed,open) { a, b -> a && b }.blockOptional()
+        val or = Mono.zip(open,closed) { a, b -> a || b }.blockOptional()
+        val orr = Mono.zip(open,open) { a, b -> a || b }.blockOptional()
         assertEquals(Optional.empty<Boolean>(),and)
         assertEquals(Optional.empty<Boolean>(),or)
         assertEquals(Optional.of(true),orr)
@@ -340,7 +342,7 @@ class MonoTests{
         val mono = Mono.fromCallable { Mono.just("Hello") }
             .toMono()
             .toMono()
-            .zipToMono(Mono.just(", World!")) { a,b -> a.map { v1 -> v1.map { v2 -> v2.map { v3 -> v3.map { v4 -> v4 + b } } } } }
+            .zipToMono(Mono.just(", World!")) { a, b -> a.map { v1 -> v1.map { v2 -> v2.map { v3 -> v3.map { v4 -> v4 + b } } } } }
             .flatMap { it }
             .flatMap { it }
             .flatMap { it }

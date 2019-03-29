@@ -1,10 +1,12 @@
-package systems.carson.impl
-
-import systems.carson.ClosableMono
+package systems.carson.mono.impl
 import systems.carson.EndResult
+import systems.carson.impl.closed
+import systems.carson.impl.forValue
+import systems.carson.mono.ClosableMono
 import java.util.*
 
-internal class PollingMono<R>(private val callable :() -> Optional<R>, private val millis :Long = 10) : GenericMono<R>(),ClosableMono<R> {
+internal class PollingMono<R>(private val callable :() -> Optional<R>, private val millis :Long = 10) : GenericMono<R>(),
+    ClosableMono<R> {
     private var closed = false
     private var processed = false
     override fun get(): EndResult<R> {

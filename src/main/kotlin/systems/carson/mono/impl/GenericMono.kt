@@ -1,8 +1,11 @@
-package systems.carson.impl
+package systems.carson.mono.impl
 
 import systems.carson.BlockWhenClosedException
 import systems.carson.EndResult
-import systems.carson.Mono
+import systems.carson.impl.ThreadManager
+import systems.carson.impl.closed
+import systems.carson.impl.forValue
+import systems.carson.mono.Mono
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.Callable
@@ -10,7 +13,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.reflect.KClass
 
-internal abstract class GenericMono<R> : Mono<R>{
+internal abstract class GenericMono<R> : Mono<R> {
 
     override fun <E> map(processor: (R) -> E): Mono<E> {
         return CallableMono(ComplexProducer {

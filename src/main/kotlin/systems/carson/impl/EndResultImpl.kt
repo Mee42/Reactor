@@ -1,11 +1,12 @@
 package systems.carson.impl
 
+import systems.carson.BlockWhenClosedException
 import systems.carson.EndResult
 import java.util.*
 
 
 internal class EndResultImpl<R>(val value :R? = null,
-                                private val isClosed :Boolean = false) :EndResult<R>{
+                                private val isClosed :Boolean = false) : EndResult<R> {
     init {
         if(isClosed && value != null)
             error("value in nonnull, but the end result is closed")
@@ -18,6 +19,8 @@ internal class EndResultImpl<R>(val value :R? = null,
     }
 
     override fun value(): R {
+        if(isClosed)
+            throw BlockWhenClosedException()
         return value!!
     }
 

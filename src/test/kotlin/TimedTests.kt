@@ -1,9 +1,7 @@
 import org.junit.Assert
 import org.junit.Test
-import systems.carson.Mono
-import systems.carson.fromCallable
-import systems.carson.just
-import systems.carson.zipToMono
+import systems.carson.funs.*
+import systems.carson.mono.Mono
 import java.time.Duration
 import java.util.*
 

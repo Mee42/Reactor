@@ -1,5 +1,6 @@
-package systems.carson
+package systems.carson.mono
 
+import systems.carson.EndResult
 import java.time.Duration
 import java.util.*
 import kotlin.reflect.KClass
@@ -14,7 +15,7 @@ interface Mono<R> {
      * @param processor The processor which will transform the value
      * @returns A [Mono] that will return the mutated value
      */
-    fun <E> map(processor :(R) -> E):Mono<E>
+    fun <E> map(processor :(R) -> E): Mono<E>
 
     /**
      * Returns a [Mono] which transforms the original value into another [Mono], and the executes that [Mono] at block/subscribe time
@@ -30,7 +31,7 @@ interface Mono<R> {
      * @param processor The processor which will transform the value
      * @returns A [Mono] which will act like the result of the mutated value.
      */
-    fun <E> flatMap(processor :(R) -> Mono<E>):Mono<E>
+    fun <E> flatMap(processor :(R) -> Mono<E>): Mono<E>
 
     /**
      * Preform action when a value passes through the [Mono]
@@ -38,7 +39,7 @@ interface Mono<R> {
      * @param processor The processor that will be executed when a value is passed through the [Mono]
      * @returns A [Mono] which will call the processor when a value is passed through
      */
-    fun doOnGet(processor :(R) -> Unit):Mono<R>
+    fun doOnGet(processor :(R) -> Unit): Mono<R>
 
     /**
      * If an exception is thrown that matches [error][KClass], use this callable instead
@@ -47,14 +48,14 @@ interface Mono<R> {
      * @param errorHandler The handler that will be called to supply an alternate value
      * @return A [Mono] with the error handling above
      */
-    fun <E :Throwable> doOnError(error : KClass<E>,errorHandler :(E) -> R):Mono<R>
+    fun <E :Throwable> doOnError(error : KClass<E>,errorHandler :(E) -> R): Mono<R>
 
     /**
      * Returns a [Mono] that will hold a single for a specified amount of time
      * @param duration The amount to delay
      * @returns A [Mono] that will delay the specified duration before passing it through
      */
-    fun delay(duration :Duration):Mono<R>
+    fun delay(duration :Duration): Mono<R>
 
     /**
      * If the given predicate is false on call time, the returning [Mono] will not execute subsequent calls.
@@ -63,14 +64,14 @@ interface Mono<R> {
      * @param predicate The predict for filtering
      * @returns A closed [Mono] if the predict returns true
      */
-    fun filter(predicate :(R) -> Boolean):Mono<R>
+    fun filter(predicate :(R) -> Boolean): Mono<R>
 
     /**
      * If the [Mono] is currently closed, use this value instead
      * @param defaultValue The processor to generate a default value
      * @returns An [Mono] which is definitely not closed
      */
-    fun ifClosed(defaultValue :() -> R):Mono<R>
+    fun ifClosed(defaultValue :() -> R): Mono<R>
 
 
 
